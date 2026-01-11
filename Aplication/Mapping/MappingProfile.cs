@@ -21,6 +21,7 @@ namespace Aplication.Mapping
 
             // Proveedores
             CreateMap<Proveedor, ProveedorDTO>().ReverseMap();
+            CreateMap<MovimientoDTO, Movimiento>();
         }
     }
 }

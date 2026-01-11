@@ -13,6 +13,7 @@ namespace Infraestructure.Data
         public DbSet<Medicamento> Medicamentos { get; set; }
         public DbSet<Lote> Lotes { get; set; }
         public DbSet<Proveedor> Proveedores { get; set; }
+        public DbSet<Movimiento> Movimientos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

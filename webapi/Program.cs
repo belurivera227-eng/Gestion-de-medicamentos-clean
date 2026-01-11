@@ -28,6 +28,7 @@ builder.Services.AddScoped<RegistrarLote>();
 builder.Services.AddScoped<ObtenerMedicamentos>();
 builder.Services.AddScoped<ActualizarMedicamento>();
 builder.Services.AddScoped<EliminarMedicamento>();
+builder.Services.AddScoped<IMovimientoRepository, MovimientoRepositorio>();
 
 var app = builder.Build();
 

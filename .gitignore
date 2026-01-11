@@ -1,0 +1,13 @@
+# Archivos de compilación de .NET
+bin/
+obj/
+*.cache
+*.AssemblyInfo.cs
+*.AssemblyInfoInputs.cache
+
+# Archivos de VS Code
+.vscode/
+.DS_Store
+
+# Base de datos local (si aplica)
+*.db
