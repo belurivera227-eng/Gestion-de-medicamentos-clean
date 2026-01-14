@@ -29,8 +29,21 @@ builder.Services.AddScoped<ObtenerMedicamentos>();
 builder.Services.AddScoped<ActualizarMedicamento>();
 builder.Services.AddScoped<EliminarMedicamento>();
 builder.Services.AddScoped<IMovimientoRepository, MovimientoRepositorio>();
-
+builder.Services.AddScoped<ObtenerReporteStockBajo>();
+builder.Services.AddScoped<ObtenerDashboard>();
+builder.Services.AddScoped<GenerarListaCompras>();
+builder.Services.AddScoped<ObtenerInventarioGeneral>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("PermitirTodo", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 var app = builder.Build();
+app.UseCors("PermitirTodo");
 
 if (app.Environment.IsDevelopment())
 {

@@ -1,0 +1,43 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">💊 Farmacia Pro</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-dashboard" aria-hidden="true"></span> Dashboard
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="registrar-movimiento">
+                <span class="oi oi-transfer" aria-hidden="true"></span> Registrar Movimiento
+            </NavLink>
+        </div>
+
+        <hr class="text-white opacity-25 mx-3" />
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="inventario">
+                <span class="oi oi-box" aria-hidden="true"></span> Inventario Total
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="lista-compras">
+                <span class="oi oi-cart" aria-hidden="true"></span> Lista de Compras
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+    <NavLink class="nav-link" href="proveedores">
+        <span class="oi oi-people" aria-hidden="true"></span> Proveedores
+    </NavLink>
+</div>
+
+        </nav>
+</div>

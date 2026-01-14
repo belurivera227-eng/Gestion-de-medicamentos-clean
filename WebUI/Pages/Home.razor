@@ -1,0 +1,131 @@
+﻿@page "/"
+@using Aplication.DTOs
+@inject HttpClient Http
+
+<PageTitle>Dashboard - Farmacia</PageTitle>
+
+<div class="container mt-4">
+    <h1 class="text-primary mb-4">🏠 Panel de Control</h1>
+
+    @if (dashboard == null)
+    {
+        <div class="d-flex align-items-center">
+            <strong>Cargando datos de la farmacia...</strong>
+            <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm bg-primary text-white border-0">
+                    <div class="card-body text-center">
+                        <h6 class="text-uppercase small">Total Medicamentos</h6>
+                        <h2 class="display-4 font-weight-bold">@dashboard.TotalMedicamentos</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm bg-success text-white border-0">
+                    <div class="card-body text-center">
+                        <h6 class="text-uppercase small">Ventas este Mes</h6>
+                        <h2 class="display-4 font-weight-bold">@dashboard.VentasEsteMes</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm bg-info text-white border-0">
+                    <div class="card-body text-center">
+                        <h6 class="text-uppercase small">Movimientos Hoy</h6>
+                        <h2 class="display-4 font-weight-bold">@dashboard.MovimientosHoy</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-danger text-white">
+                        <i class="oi oi-warning"></i> ⚠️ Stock Bajo (Reponer)
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var nombre in dashboard.NombresStockBajo)
+                        {
+                            <li class="list-group-item">@nombre</li>
+                        }
+                        @if (!dashboard.NombresStockBajo.Any())
+                        {
+                            <li class="list-group-item text-muted">Todo el stock está bien</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-warning text-dark">
+                        <i class="oi oi-clock"></i> 📅 Próximos a Vencer (30 días)
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var item in dashboard.NombresProximosAVencer)
+                        {
+                            <li class="list-group-item">@item</li>
+                        }
+                        @if (!dashboard.NombresProximosAVencer.Any())
+                        {
+                            <li class="list-group-item text-muted">No hay vencimientos próximos</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+        <div class="col-12">
+            <div class="card bg-light border-0 shadow-sm">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="oi oi-people me-2 text-secondary"></i>
+                        <strong>Proveedor Principal:</strong> 
+                        <span class="badge bg-white text-dark border ms-2">@dashboard.ProveedorPrincipal</span>
+                    </div>
+                    <div>
+                        <i class="oi oi-dollar me-2 text-success"></i>
+                        <strong>Valor Total Inventario:</strong> 
+                        <span class="text-success font-weight-bold">@dashboard.ValorTotalInventario.ToString("C")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+</div>
+
+@code {
+    private DashboardDTO? dashboard;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try 
+        {
+            // Intentamos obtener los datos del Backend
+            dashboard = await Http.GetFromJsonAsync<DashboardDTO>("api/Dashboard");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar el dashboard: {ex.Message}");
+        }
+    }
+    public class DashboardDTO
+    {
+        public int TotalMedicamentos { get; set; }
+        public List<string> NombresStockBajo { get; set; } = new();
+        public List<string> NombresProximosAVencer { get; set; } = new();
+        public int MovimientosHoy { get; set; }
+        public int VentasEsteMes { get; set; }
+        public string ProveedorPrincipal { get; set; } = "Sin datos";
+        public decimal ValorTotalInventario { get; set; }
+    }
+}

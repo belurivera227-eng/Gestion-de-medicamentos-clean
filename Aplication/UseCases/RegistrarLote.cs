@@ -9,20 +9,20 @@ namespace Aplication.UseCases
 {
     public class RegistrarLote
     {
-        private readonly IMedicamentoRepository _repository;
+        private readonly IMedicamentoRepository _medRepo;
 
-        public RegistrarLote(IMedicamentoRepository repository)
+        public RegistrarLote(IMedicamentoRepository medRepo)
         {
-            _repository = repository;
+            _medRepo = medRepo;
         }
 
         public async Task EjecutarAsync(Lote lote)
         {
-            // Aquí podrías poner reglas, ej: no permitir fechas pasadas
-            if (lote.FechaVencimiento < DateTime.Now)
-                throw new Exception("No se puede registrar un lote ya vencido.");
+            // Verificamos que el lote no sea nulo y tenga cantidad
+            if (lote == null) return;
 
-            await _repository.CrearLoteAsync(lote);
+            // Guardamos el lote en la base de datos a través del repositorio
+            await _medRepo.CrearLoteAsync(lote);
         }
     }
 }

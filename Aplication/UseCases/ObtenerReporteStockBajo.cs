@@ -2,22 +2,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Domain.Entities;
 using Domain.Interfaces;
 
 namespace Aplication.UseCases
 {
-    public class ConsultarVencimientos
+    public class ObtenerReporteStockBajo
     {
         private readonly IMedicamentoRepository _repository;
 
-        public ConsultarVencimientos(IMedicamentoRepository repository)
+        public ObtenerReporteStockBajo(IMedicamentoRepository repository)
         {
             _repository = repository;
         }
-        public async Task<IEnumerable<Lote>> EjecutarAsync(int diasProximos = 30)
+
+        public async Task<IEnumerable<object>> EjecutarAsync()
         {
-            return await _repository.ObtenerVencimientosProximosAsync(diasProximos);
+            return await _repository.ObtenerReporteStockBajoAsync();
         }
     }
 }

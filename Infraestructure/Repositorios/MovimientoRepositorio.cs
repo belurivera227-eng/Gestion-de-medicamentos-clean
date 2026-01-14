@@ -35,7 +35,7 @@ namespace Infraestructure.Repositorios
                 {
                     lote.Cantidad += movimiento.Cantidad;
                 }
-
+                _context.Lotes.Update(lote);
                 _context.Movimientos.Add(movimiento);
                 await _context.SaveChangesAsync();
             }
@@ -45,6 +45,12 @@ namespace Infraestructure.Repositorios
             return await _context.Movimientos
                 .Where(m => m.LoteId == loteId)
                 .OrderByDescending(m => m.Fecha)
+                .ToListAsync();
+        }
+        public async Task<IEnumerable<Movimiento>> ObtenerHistorialPorFechaAsync(DateTime inicio, DateTime fin)
+        {
+            return await _context.Movimientos
+                .Where(m => m.Fecha >= inicio && m.Fecha < fin)
                 .ToListAsync();
         }
     }

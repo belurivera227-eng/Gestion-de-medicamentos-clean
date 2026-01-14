@@ -1,0 +1,125 @@
+@page "/lista-compras"
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<PageTitle>Lista de Compras</PageTitle>
+
+<div class="container mt-4 mb-5">
+    <div class="card shadow border-0">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+            <h3 class="mb-0"><i class="oi oi-cart me-2"></i> Lista de Reposición</h3>
+            <button class="btn btn-outline-light btn-sm" @onclick="DescargarLista">
+                <i class="oi oi-cloud-download me-1"></i> Descargar .TXT
+            </button>
+        </div>
+
+        <div class="card-body p-0">
+            @if (items == null)
+            {
+                <div class="text-center p-5">
+                    <div class="spinner-grow text-primary" role="status"></div>
+                    <p class="mt-3 text-muted">Analizando niveles de inventario...</p>
+                </div>
+            }
+            else if (!items.Any())
+            {
+                <div class="p-5 text-center">
+                    <div class="display-1 text-success"><i class="oi oi-circle-check"></i></div>
+                    <h4 class="mt-3">¡Stock Optimizado!</h4>
+                    <p class="text-muted">Todos los medicamentos superan el stock mínimo definido.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-secondary small text-uppercase">
+                            <tr>
+                                <th class="ps-4">Medicamento</th>
+                                <th class="text-center">Estado</th>
+                                <th class="text-center">Stock Actual</th>
+                                <th class="text-center">Faltante</th>
+                                <th>Proveedor Sugerido</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in items)
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-dark">@item.NombreMedicamento</div>
+                                        <small class="text-muted">Mínimo requerido: @item.StockMinimo</small>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (item.StockActual == 0)
+                                        {
+                                            <span class="badge rounded-pill bg-danger">CRÍTICO</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge rounded-pill bg-warning text-dark">REABASTECER</span>
+                                        }
+                                    </td>
+                                    <td class="text-center fs-5">@item.StockActual</td>
+                                    <td class="text-center">
+                                        <div class="text-danger fw-bold">
+                                            <i class="oi oi-arrow-thick-top"></i> 
+                                            @(item.StockMinimo - item.StockActual)
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-primary fw-bold">
+                                            <i class="oi oi-person me-1"></i> 
+                                            @(string.IsNullOrEmpty(item.ProveedorNombre) ? "No asignado" : item.ProveedorNombre)
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+        <div class="card-footer bg-white text-muted small py-3">
+            <i class="oi oi-info me-1"></i> Los proveedores sugeridos se basan en el último ingreso registrado para cada medicamento.
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<InventarioDTO>? items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try {
+            items = await Http.GetFromJsonAsync<List<InventarioDTO>>("api/Medicamento/reporte-stock-bajo");
+        } catch (Exception ex) {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    private async Task DescargarLista()
+    {
+        try {
+            var response = await Http.GetAsync("api/Reportes/lista-compras/txt");
+            if (response.IsSuccessStatusCode) {
+                var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                var fileName = $"Lista_Compras_{DateTime.Now:yyyyMMdd}.txt";
+                var base64 = Convert.ToBase64String(fileBytes);
+                await JS.InvokeVoidAsync("downloadFileFromBase64", fileName, base64);
+            }
+        } catch (Exception ex) {
+            await JS.InvokeVoidAsync("alert", "Error al descargar: " + ex.Message);
+        }
+    }
+
+    public class InventarioDTO
+    {
+        public Guid Id { get; set; }
+        public string NombreMedicamento { get; set; } = "";
+        public int StockMinimo { get; set; }
+        public int StockActual { get; set; }
+        public DateTime? FechaVencimientoProxima { get; set; }
+        public string? ProveedorNombre { get; set; } // Campo añadido
+    }
+}

@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infraestructure", "Infraest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "webapi", "webapi\webapi.csproj", "{CFE51E00-F9D9-4C7E-94C5-BD0A3064947D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebUI", "WebUI\WebUI.csproj", "{C835A56B-68CE-4A98-A750-D5F3ADFD964A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{CFE51E00-F9D9-4C7E-94C5-BD0A3064947D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CFE51E00-F9D9-4C7E-94C5-BD0A3064947D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CFE51E00-F9D9-4C7E-94C5-BD0A3064947D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C835A56B-68CE-4A98-A750-D5F3ADFD964A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C835A56B-68CE-4A98-A750-D5F3ADFD964A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C835A56B-68CE-4A98-A750-D5F3ADFD964A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C835A56B-68CE-4A98-A750-D5F3ADFD964A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -12,6 +12,7 @@ namespace Aplication.DTOs
         public int Cantidad { get; set; }
         public DateTime FechaVencimiento { get; set; }
         public Guid MedicamentoId { get; set; }
+        public string? NombreMedicamento { get; set; }
         public Guid? ProveedorId { get; set; }
         public string? NombreProveedor { get; set; }
     }

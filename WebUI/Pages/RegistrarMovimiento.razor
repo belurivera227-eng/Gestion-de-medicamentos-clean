@@ -1,0 +1,190 @@
+@page "/registrar-movimiento"
+@inject HttpClient Http
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<PageTitle>Registrar Movimiento</PageTitle>
+
+@* mb-5 pb-5 asegura que el navegador tenga espacio inferior para desplegar el select hacia abajo *@
+<div class="container mt-4 mb-5 pb-5">
+    <div class="card shadow border-0">
+        <div class="card-header bg-primary text-white py-3">
+            <h3 class="mb-0"><i class="oi oi-transfer"></i> Nueva Operación de Inventario</h3>
+        </div>
+        <div class="card-body p-4">
+            <EditForm Model="@movimientoDto" OnValidSubmit="GuardarMovimiento">
+                
+                @* 1. SELECCIÓN DE LOTE *@
+                <div class="mb-4">
+                    <label class="form-label font-weight-bold">1. Seleccione el Lote del Producto</label>
+                    <select class="form-select form-select-lg @(EsLoteVencido ? "border-danger text-danger" : "")" @bind="movimientoDto.LoteId">
+                        <option value="@Guid.Empty">-- Seleccione el lote disponible --</option>
+                        @if (lotes != null)
+                        {
+                            @foreach (var lote in lotes)
+                            {
+                                <option value="@lote.Id">
+                                    @(lote.NombreMedicamento ?? "Medicamento") - Lote: @lote.NumeroLote (@lote.Cantidad unid.) 
+                                    @(lote.FechaVencimiento < DateTime.Now ? " [¡VENCIDO!]" : "")
+                                </option>
+                            }
+                        }
+                    </select>
+                    
+                    @if (EsLoteVencido)
+                    {
+                        <div class="alert alert-danger mt-3 d-flex align-items-center shadow-sm" role="alert">
+                            <i class="oi oi-warning me-2 animate-flicker"></i>
+                            <div>
+                                <strong>¡PELIGRO!</strong> Este lote venció el <strong>@LoteSeleccionado?.FechaVencimiento.ToShortDateString()</strong>. 
+                                Se recomienda usarlo solo para salidas de descarte o devolución.
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="row">
+                    @* 2. TIPO DE ACCIÓN *@
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label font-weight-bold">2. Tipo de Acción</label>
+                        <select class="form-select" @bind="movimientoDto.Tipo">
+                            <option value="Entrada">📥 Entrada (Compra / Ajuste +)</option>
+                            <option value="Salida">📤 Salida (Venta / Ajuste -)</option>
+                        </select>
+                    </div>
+
+                    @* 3. CANTIDAD CON VALIDACIÓN DE STOCK *@
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label font-weight-bold">
+                            3. Cantidad @(movimientoDto.Tipo == "Salida" ? $"(Disponible: {LoteSeleccionado?.Cantidad ?? 0})" : "")
+                        </label>
+                        <input type="number" 
+                               class="form-control @(CantidadInvalida ? "is-invalid" : "")" 
+                               @bind="movimientoDto.Cantidad" 
+                               @bind:event="oninput"
+                               min="1" />
+                        
+                        @if (CantidadInvalida)
+                        {
+                            <div class="invalid-feedback fw-bold">
+                                ❌ No puedes retirar más de las @LoteSeleccionado?.Cantidad unidades disponibles.
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                @* 4. MOTIVO *@
+                <div class="mb-4">
+                    <label class="form-label font-weight-bold">4. Motivo / Observación</label>
+                    <input type="text" class="form-control" @bind="movimientoDto.Motivo" placeholder="Ej: Venta directa, Descarte por vencimiento..." />
+                </div>
+
+                @* BOTONES DE ACCIÓN *@
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-2">
+                    <a href="/inventario" class="btn btn-light me-md-2 shadow-sm">Cancelar</a>
+                    
+                    @* El botón se desactiva si la cantidad supera el stock en una salida *@
+                    <button type="submit" 
+                            class="btn @(CantidadInvalida ? "btn-secondary" : (EsLoteVencido ? "btn-warning" : "btn-success")) px-5 shadow-sm fw-bold"
+                            disabled="@CantidadInvalida">
+                        
+                        <i class="oi @(CantidadInvalida ? "oi-ban" : (EsLoteVencido ? "oi-warning" : "oi-circle-check"))"></i> 
+                        
+                        @if (CantidadInvalida)
+                        {
+                            <span>Stock Insuficiente</span>
+                        }
+                        else
+                        {
+                            @(EsLoteVencido ? "Confirmar Salida Riesgosa" : "Confirmar Registro")
+                        }
+                    </button>
+                </div>
+                
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+<style>
+    .animate-flicker {
+        animation: flicker 1.5s infinite;
+    }
+    @@keyframes flicker {
+        0% { opacity: 1; }
+        50% { opacity: 0.3; }
+        100% { opacity: 1; }
+    }
+</style>
+
+@code {
+    private MovimientoDTO movimientoDto = new() { Tipo = "Salida", Cantidad = 1, Motivo = "Venta Directa" };
+    private List<LoteDTO>? lotes;
+
+    // Helpers de lógica
+    private LoteDTO? LoteSeleccionado => lotes?.FirstOrDefault(l => l.Id == movimientoDto.LoteId);
+    
+    private bool EsLoteVencido => LoteSeleccionado != null && LoteSeleccionado.FechaVencimiento < DateTime.Now;
+
+    private bool CantidadInvalida => 
+        movimientoDto.Tipo == "Salida" && 
+        LoteSeleccionado != null && 
+        movimientoDto.Cantidad > LoteSeleccionado.Cantidad;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try {
+            lotes = await Http.GetFromJsonAsync<List<LoteDTO>>("api/Medicamento/todos-los-lotes");
+        } catch (Exception ex) {
+            Console.WriteLine("Error: " + ex.Message);
+        }
+    }
+
+    private async Task GuardarMovimiento()
+    {
+        // 1. Validar selección
+        if (movimientoDto.LoteId == Guid.Empty) {
+            await JS.InvokeVoidAsync("alert", "⚠️ Seleccione un lote.");
+            return;
+        }
+
+        // 2. Validar stock (Doble check por seguridad)
+        if (CantidadInvalida) {
+            await JS.InvokeVoidAsync("alert", "❌ No hay suficiente stock para realizar esta salida.");
+            return;
+        }
+
+        // 3. Confirmación si está vencido
+        if (EsLoteVencido) {
+            bool confirm = await JS.InvokeAsync<bool>("confirm", "EL PRODUCTO ESTÁ VENCIDO. ¿Realmente desea registrar este movimiento?");
+            if (!confirm) return;
+        }
+
+        // 4. Enviar al servidor
+        var response = await Http.PostAsJsonAsync("api/Movimientos", movimientoDto);
+        if (response.IsSuccessStatusCode) 
+        {
+            Nav.NavigateTo("/inventario");
+        }
+        else 
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            await JS.InvokeVoidAsync("alert", "Error: " + error);
+        }
+    }
+
+    public class MovimientoDTO {
+        public Guid LoteId { get; set; }
+        public string Tipo { get; set; } = "Salida";
+        public int Cantidad { get; set; }
+        public string Motivo { get; set; } = "";
+    }
+
+    public class LoteDTO {
+        public Guid Id { get; set; }
+        public string? NumeroLote { get; set; }
+        public int Cantidad { get; set; }
+        public string? NombreMedicamento { get; set; }
+        public DateTime FechaVencimiento { get; set; }
+    }
+}

@@ -1,0 +1,148 @@
+@page "/proveedores"
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<PageTitle>Proveedores</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary fw-bold"><i class="oi oi-people"></i> Gestión de Proveedores</h2>
+        <button class="btn btn-success shadow-sm" @onclick="() => verFormulario = true">
+            <i class="oi oi-plus"></i> Registrar Proveedor
+        </button>
+    </div>
+
+    @if (proveedores == null)
+    {
+        <div class="text-center mt-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p>Obteniendo datos de la API...</p>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow border-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>NIT</th>
+                            <th>Vendedor</th>
+                            <th>Teléfono</th>
+                            <th>Dirección</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in proveedores)
+                        {
+                            <tr>
+                                <td class="fw-bold">@p.Nombre</td>
+                                <td><span class="badge bg-secondary">@p.Nit</span></td>
+                                <td>@p.ContactoVendedor</td>
+                                <td>@p.Telefono</td>
+                                <td class="small">@p.Direccion</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary"><i class="oi oi-pencil"></i></button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@* Modal de Registro *@
+@if (verFormulario)
+{
+    <div class="modal d-block shadow" style="background: rgba(0,0,0,0.5); z-index: 1050;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Nuevo Proveedor</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="() => verFormulario = false"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@nuevoProv" OnValidSubmit="Guardar">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre / Razón Social</label>
+                            <input class="form-control" @bind="nuevoProv.Nombre" required />
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+    @* Usamos translate="no" para evitar que el navegador lo cambie *@
+    <label class="form-label fw-bold" translate="no">NIT / RUT</label>
+    <input class="form-control" 
+           @bind="nuevoProv.Nit" 
+           placeholder="Identificación tributaria" 
+           autocomplete="off" />
+</div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Teléfono</label>
+                                <input class="form-control" @bind="nuevoProv.Telefono" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contacto del Vendedor</label>
+                            <input class="form-control" @bind="nuevoProv.ContactoVendedor" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Dirección</label>
+                            <input class="form-control" @bind="nuevoProv.Direccion" />
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-light" @onclick="() => verFormulario = false">Cancelar</button>
+                            <button type="submit" class="btn btn-success">Guardar</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<ProveedorDTO>? proveedores;
+    private ProveedorDTO nuevoProv = new();
+    private bool verFormulario = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarProveedores();
+    }
+
+    private async Task CargarProveedores()
+    {
+        try {
+            proveedores = await Http.GetFromJsonAsync<List<ProveedorDTO>>("api/Proveedor");
+        } catch (Exception ex) {
+            Console.WriteLine("Error: " + ex.Message);
+        }
+    }
+
+    private async Task Guardar()
+    {
+        var res = await Http.PostAsJsonAsync("api/Proveedor", nuevoProv);
+        if (res.IsSuccessStatusCode)
+        {
+            verFormulario = false;
+            nuevoProv = new();
+            await CargarProveedores();
+            await JS.InvokeVoidAsync("alert", "Proveedor registrado con éxito");
+        }
+    }
+
+    // Definición local del DTO para que el Frontend funcione
+    public class ProveedorDTO
+    {
+        public Guid Id { get; set; }
+        public string Nombre { get; set; } = "";
+        public string Nit { get; set; } = "";
+        public string Telefono { get; set; } = "";
+        public string Direccion { get; set; } = "";
+        public string ContactoVendedor { get; set; } = "";
+    }
+}

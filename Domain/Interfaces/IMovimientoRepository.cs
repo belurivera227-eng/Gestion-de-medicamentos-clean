@@ -10,5 +10,6 @@ namespace Domain.Interfaces
     {
         Task RegistrarMovimientoAsync(Movimiento movimiento);
         Task<IEnumerable<Movimiento>> ObtenerHistorialPorLoteAsync(Guid loteId);
+        Task<IEnumerable<Movimiento>> ObtenerHistorialPorFechaAsync(DateTime inicio, DateTime fin);
     }
 }
